@@ -1,0 +1,40 @@
+- jobs:
+  - _id: ingest_data
+    command: python ./jobs/ingest_data.py
+    params:
+      DB_MONGO_HOST: example.host.com
+      DB_MONGO_PASSWORD: root
+      DB_MONGO_PORT: '27017'
+      DB_MONGO_USERNAME: root
+      type: DB_MONGO
+    title: Ingest Data Into Pipeline
+  - _id: preprocess_data
+    command: python ./jobs/preprocess_data.py
+    title: Perform Data Preprocessing
+  - _id: train_model
+    command: python ./jobs/train.py
+    params:
+      epochs: '5'
+      learning_rate: '.001'
+      lossFunc: ''
+    title: Perform Model Training
+  - _id: eval_model
+    command: python ./jobs/evaluate.py
+    title: Perform Model Evaluation
+  - _id: deploy_model
+    command: python ./jobs/deploy.py
+    title: Perform Model Deployment
+    
+- workflow:
+    jobs:
+    - _step: ingest_data
+      interval: 60
+      type: scheduled
+    - _step: preprocess_data
+      requires: ingest_data
+    - _step: train_model
+      requires: preprocess_data
+    - _step: eval_model
+      requires: train_model
+    - _step: deploy_model
+      requires: eval_model
